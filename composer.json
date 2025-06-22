@@ -1,0 +1,16 @@
+{
+  "autoload": {
+    "psr-4": {
+      "WCCREPORTS\\": "includes/",
+      "WCCREPORTS\\Core\\": "includes/Core",
+      "WCCREPORTS\\Utilities\\": "includes/Utilities"
+    }
+  },
+  "authors": [
+    {
+      "name": "Hamed Movasaqpoor",
+      "email": "hamed.movasaqpoor@gmail.com"
+    }
+  ],
+  "require": {}
+}
