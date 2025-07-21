@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-22 11:16+0330\n"
+"POT-Creation-Date: 2025-06-22 11:07+0330\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,31 +16,6 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
-#. Plugin Name of the plugin
-#: wc-customer-reports.php
-msgid "Woocommerce Customer Reports Agent"
-msgstr ""
-
-#. Plugin URI of the plugin
-#: wc-customer-reports.php
-msgid "https://github.com/ihamedm/wcc-reports"
-msgstr ""
-
-#. Description of the plugin
-#: wc-customer-reports.php
-msgid "Advanced customer analytics and reporting plugin for WooCommerce. Track customer behavior, generate detailed reports, and gain insights into your customer base with performance-optimized analytics."
-msgstr ""
-
-#. Author of the plugin
-#: wc-customer-reports.php
-msgid "Hamed Movasaqpoor"
-msgstr ""
-
-#. Author URI of the plugin
-#: wc-customer-reports.php
-msgid "https://github.com/ihamedm"
-msgstr ""
-
 #
 # File: includes/ReportPage.php, line: 43
 # File: includes/ReportPage.php, line: 44
@@ -112,26 +87,4 @@ msgstr ""
 # File: includes/ReportPage.php, line: 252
 # File: includes/ReportPage.php, line: 261
 msgid "N/A"
-msgstr ""
-#
-# File: includes/Reports/ReportManager.php, line: 67
-# File: includes/Reports/ReportManager.php, line: 96
-# File: includes/Reports/ReportManager.php, line: 133
-msgid "Report Not found"
-msgstr ""
-#
-# File: includes/Reports/ReportManager.php, line: 74
-msgid "Reports Generated successfully"
-msgstr ""
-#
-# File: includes/Reports/ReportManager.php, line: 104
-msgid "Export successfully created."
-msgstr ""
-#
-# File: includes/Reports/ReportManager.php, line: 108
-msgid "Data not found"
-msgstr ""
-#
-# File: includes/Reports/ReportManager.php, line: 141
-msgid "Details received successfully"
 msgstr ""

@@ -111,31 +111,31 @@ class ReportPage {
                 <?php endif; ?>
                 
                 <div class="report-value" id="<?php echo esc_attr($report_id); ?>">
-                    <span class="placeholder">برای بارگذاری داده روی "تولید گزارش" کلیک کنید</span>
+                    <span class="placeholder"><?php _e('Click on load report to show results.', WCCREPORTS_TEXT_DOMAIN); ?></span>
                 </div>
                 
                 <div class="report-actions">
                     <button type="button" class="button button-primary generate-report-btn" 
                             data-report="<?php echo esc_attr($report_id); ?>" 
                             data-action="<?php echo esc_attr($ajax_action); ?>">
-                        <span class="button-text">تولید گزارش</span>
+                        <span class="button-text"><?php _e('Generate Report', WCCREPORTS_TEXT_DOMAIN); ?></span>
                         <span class="spinner" style="display: none;"></span>
                     </button>
 
                     <button type="button" class="button button-secondary refresh-cache-btn"
                             data-report="<?php echo esc_attr($report_id); ?>">
-                        بروزرسانی کش
+                        <?php _e('Update cache', WCCREPORTS_TEXT_DOMAIN); ?>
                     </button>
 
                     <button type="button" class="button button-secondary export-users-btn" 
                             data-report-id="<?php echo esc_attr($report_id); ?>"
                             data-report-name="<?php echo esc_attr($report_title); ?>">
-                        اکسل
+                        <?php _e('XLS', WCCREPORTS_TEXT_DOMAIN); ?>
                     </button>
 
                     <a href="<?php echo admin_url('admin.php?page=customer-reports&view=details&type=' . esc_attr($report_id)); ?>"
                        class="button button-secondary" target="_blank">
-                        لیست
+                        <?php _e('List', WCCREPORTS_TEXT_DOMAIN); ?>
                     </a>
                 </div>
             </div>
@@ -151,7 +151,7 @@ class ReportPage {
     public function display_user_details_page($report_type) {
         $report = Reports\ReportRegistry::get($report_type);
         if (!$report) {
-            wp_die('Report not found');
+            wp_die(__('Report not found', WCCREPORTS_TEXT_DOMAIN));
         }
 
         $sort_by = sanitize_text_field($_GET['sort_by'] ?? 'display_name');
@@ -169,9 +169,9 @@ class ReportPage {
         <div class="wrap">
             <h1>
                 <a href="<?php echo admin_url('admin.php?page=customer-reports'); ?>" class="page-title-action">
-                    ← بازگشت به گزارش ها
+                    ← <?php _e('Return to reports', WCCREPORTS_TEXT_DOMAIN); ?>
                 </a>
-                <?php echo esc_html($report->get_title()); ?> - جزئیات کاربران
+                <?php echo esc_html($report->get_title()); ?> - <?php _e('Users Details', WCCREPORTS_TEXT_DOMAIN); ?>
             </h1>
             
             <div class="wcc-reports-user-details-container">
@@ -184,17 +184,17 @@ class ReportPage {
                                 </th>
                                 <th>
                                     <a href="<?php echo admin_url('admin.php?page=customer-reports&view=details&type=' . esc_attr($report_type) . '&sort_by=display_name&sort_order=' . $current_sort['display_name']); ?>">
-                                        نام
+                                        <?php _e('Name', WCCREPORTS_TEXT_DOMAIN); ?>
                                         <?php if ($sort_by === 'display_name'): ?>
                                             <span class="sort-indicator"><?php echo $sort_order === 'ASC' ? '↑' : '↓'; ?></span>
                                         <?php endif; ?>
                                     </a>
                                 </th>
-                                <th>ایمیل</th>
-                                <th>تلفن</th>
+                                <th><?php _e('Email', WCCREPORTS_TEXT_DOMAIN); ?></th>
+                                <th><?php _e('Phone', WCCREPORTS_TEXT_DOMAIN); ?></th>
                                 <th>
                                     <a href="<?php echo admin_url('admin.php?page=customer-reports&view=details&type=' . esc_attr($report_type) . '&sort_by=order_count&sort_order=' . $current_sort['order_count']); ?>">
-                                        تعداد سفارشات
+                                        <?php _e('Orders', WCCREPORTS_TEXT_DOMAIN); ?>
                                         <?php if ($sort_by === 'order_count'): ?>
                                             <span class="sort-indicator"><?php echo $sort_order === 'ASC' ? '↑' : '↓'; ?></span>
                                         <?php endif; ?>
@@ -202,7 +202,7 @@ class ReportPage {
                                 </th>
                                 <th>
                                     <a href="<?php echo admin_url('admin.php?page=customer-reports&view=details&type=' . esc_attr($report_type) . '&sort_by=user_registered&sort_order=' . $current_sort['user_registered']); ?>">
-                                        تاریخ ثبت نام
+                                        <?php _e('Register on', WCCREPORTS_TEXT_DOMAIN); ?>
                                         <?php if ($sort_by === 'user_registered'): ?>
                                             <span class="sort-indicator"><?php echo $sort_order === 'ASC' ? '↑' : '↓'; ?></span>
                                         <?php endif; ?>
@@ -210,7 +210,7 @@ class ReportPage {
                                 </th>
                                 <th>
                                     <a href="<?php echo admin_url('admin.php?page=customer-reports&view=details&type=' . esc_attr($report_type) . '&sort_by=last_order_date&sort_order=' . $current_sort['last_order_date']); ?>">
-                                        تاریخ آخرین سفارش
+                                        <?php _e('Last order', WCCREPORTS_TEXT_DOMAIN); ?>
                                         <?php if ($sort_by === 'last_order_date'): ?>
                                             <span class="sort-indicator"><?php echo $sort_order === 'ASC' ? '↑' : '↓'; ?></span>
                                         <?php endif; ?>
@@ -228,7 +228,7 @@ class ReportPage {
                             } else {
                                 ?>
                                 <tr>
-                                    <td colspan="6">هیچ کاربری برای این گزارش یافت نشد.</td>
+                                    <td colspan="6"><?php _e('Not found any records for this report.', WCCREPORTS_TEXT_DOMAIN); ?></td>
                                 </tr>
                                 <?php
                             }
@@ -248,8 +248,8 @@ class ReportPage {
      */
     private function display_user_row($user, $index): void {
         $order_count = $user->order_count ?? 0;
-        $registration_date = $user->user_registered ? wp_date('j F Y', strtotime($user->user_registered)) : 'N/A';
-        $last_order_date = $user->last_order_date ? wp_date('j F Y', strtotime($user->last_order_date)) : 'N/A';
+        $registration_date = $user->user_registered ? wp_date('j F Y', strtotime($user->user_registered)) : __('N/A', WCCREPORTS_TEXT_DOMAIN);
+        $last_order_date = $user->last_order_date ? wp_date('j F Y', strtotime($user->last_order_date)) : __('N/A', WCCREPORTS_TEXT_DOMAIN);
         
         ?>
         <tr>
@@ -258,7 +258,7 @@ class ReportPage {
                     admin_url('user-edit.php?user_id=' . $user->ID),
                     esc_html($user->display_name ?: $user->user_login)) ; ?></td>
             <td><?php echo esc_html($user->user_email); ?></td>
-            <td><?php echo esc_html($user->phone ?: 'N/A'); ?></td>
+            <td><?php echo esc_html($user->phone ?: __('N/A', WCCREPORTS_TEXT_DOMAIN)); ?></td>
             <td>
                 <?php if ($order_count > 0): ?>
                     <a href="<?php echo admin_url('edit.php?post_type=shop_order&_customer_user=' . $user->ID); ?>" 

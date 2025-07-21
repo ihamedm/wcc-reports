@@ -1,0 +1,91 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+msgid ""
+msgstr ""
+"Project-Id-Version: Woocommerce Customer Reports Agent\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-06-22 10:51+0330\n"
+"PO-Revision-Date: 2025-06-22 07:40+0000\n"
+"Last-Translator: فنی\n"
+"Language-Team: فارسی\n"
+"Language: fa_IR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Loco https://localise.biz/\n"
+"X-Loco-Version: 2.8.0; wp-6.8.1; php-8.2.23"
+
+# File: includes/ReportPage.php, line: 114
+msgid "Click on load report to show results."
+msgstr "روی دکمه دریافت گزارش کلیک کنید تا نتایج را ببینید."
+
+# File: includes/ReportPage.php, line: 43
+# File: includes/ReportPage.php, line: 44
+# File: includes/ReportPage.php, line: 65
+msgid "Customer Reports"
+msgstr "گزارش مشتریان"
+
+# File: includes/ReportPage.php, line: 193
+msgid "Email"
+msgstr "ایمیل"
+
+# File: includes/ReportPage.php, line: 121
+msgid "Generate Report"
+msgstr "دریافت گزارش"
+
+# File: includes/ReportPage.php, line: 213
+msgid "Last order"
+msgstr "آخرین سفارش"
+
+# File: includes/ReportPage.php, line: 138
+msgid "List"
+msgstr "لیست"
+
+# File: includes/ReportPage.php, line: 251
+# File: includes/ReportPage.php, line: 252
+# File: includes/ReportPage.php, line: 261
+msgid "N/A"
+msgstr "-"
+
+# File: includes/ReportPage.php, line: 187
+msgid "Name"
+msgstr "نام"
+
+# File: includes/ReportPage.php, line: 231
+msgid "Not found any records for this report."
+msgstr "هیچ کاربری برای این گزارش یافت نشد."
+
+# File: includes/ReportPage.php, line: 197
+msgid "Orders"
+msgstr "سفارش ها"
+
+# File: includes/ReportPage.php, line: 194
+msgid "Phone"
+msgstr "تلفن"
+
+# File: includes/ReportPage.php, line: 205
+msgid "Register on"
+msgstr "تاریخ ثبت نام"
+
+# File: includes/ReportPage.php, line: 154
+msgid "Report not found"
+msgstr "گزارش پیدا نشد"
+
+# File: includes/ReportPage.php, line: 172
+msgid "Return to reports"
+msgstr "برگشت به گزارشات"
+
+# File: includes/ReportPage.php, line: 127
+msgid "Update cache"
+msgstr "بروزرسانی"
+
+# File: includes/ReportPage.php, line: 174
+msgid "Users Details"
+msgstr "جزییات کاربران"
+
+# File: includes/ReportPage.php, line: 133
+msgid "XLS"
+msgstr "اکسل"

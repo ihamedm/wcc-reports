@@ -64,14 +64,14 @@ class ReportManager {
 
         $report = ReportRegistry::get($report_id);
         if (!$report) {
-            wp_send_json_error(array('message' => 'گزارش یافت نشد'));
+            wp_send_json_error(array('message' => __('Report Not found', WCCREPORTS_TEXT_DOMAIN)));
         }
 
         $count = $report->get_count($refresh_cache, $user_parameters);
         
         wp_send_json_success(array(
             'count' => $count,
-            'message' => 'گزارش با موفقیت تولید شد'
+            'message' => __('Reports Generated successfully', WCCREPORTS_TEXT_DOMAIN),
         ));
     }
 
@@ -93,7 +93,7 @@ class ReportManager {
         
         $report = ReportRegistry::get($report_id);
         if (!$report) {
-            wp_send_json_error(array('message' => 'گزارش یافت نشد'));
+            wp_send_json_error(array('message' => __('Report Not found', WCCREPORTS_TEXT_DOMAIN)));
         }
 
         $filename = $report->export_users();
@@ -101,11 +101,11 @@ class ReportManager {
         if ($filename) {
             wp_send_json_success(array(
                 'file_url' => $filename,
-                'message' => 'خروجی با موفقیت تکمیل شد'
+                'message' => __('Export successfully created.', WCCREPORTS_TEXT_DOMAIN)
             ));
         } else {
             wp_send_json_error(array(
-                'message' => 'خطا در خروجی یا داده‌ای یافت نشد'
+                'message' => __('Data not found', WCCREPORTS_TEXT_DOMAIN)
             ));
         }
     }
@@ -130,7 +130,7 @@ class ReportManager {
 
         $report = ReportRegistry::get($report_id);
         if (!$report) {
-            wp_send_json_error(array('message' => 'گزارش یافت نشد'));
+            wp_send_json_error(array('message' =>__('Report Not found', WCCREPORTS_TEXT_DOMAIN)));
         }
 
         $users = $report->get_users_details($sort_by, $sort_order);
@@ -138,7 +138,7 @@ class ReportManager {
         wp_send_json_success(array(
             'users' => $users,
             'count' => count($users),
-            'message' => 'جزئیات با موفقیت دریافت شد'
+            'message' => __('Details received successfully', WCCREPORTS_TEXT_DOMAIN)
         ));
     }
 
