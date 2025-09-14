@@ -31,6 +31,7 @@ class ReportPage {
         Reports\ReportRegistry::register(new Reports\NewCustomersLastMonth());
         Reports\ReportRegistry::register(new Reports\LastWeekInactiveUsers());
         Reports\ReportRegistry::register(new Reports\LastMonthPurchasersWithoutCategory());
+        Reports\ReportRegistry::register(new Reports\ProductPurchasersReport());
     }
 
 

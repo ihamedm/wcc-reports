@@ -1,0 +1,55 @@
+# WordPress specific
+wp-config.php
+wp-content/uploads/
+wp-content/cache/
+wp-content/backup-db/
+wp-content/advanced-cache.php
+wp-content/wp-cache-config.php
+wp-content/cache/
+wp-content/upgrade/
+
+# Plugin specific
+*.log
+*.tmp
+*.temp
+vendor/
+node_modules/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Export files (if any)
+exports/
+*.xls
+*.xlsx
+*.csv
+
+# Composer
+composer.phar
+/vendor/
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
