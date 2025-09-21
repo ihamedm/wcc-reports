@@ -56,7 +56,8 @@ class NewCustomersLastMonth extends BaseReport {
                 WHERE u.user_registered >= %s
                 AND u.user_registered <= %s
                 AND o.date_created_gmt >= %s
-                AND o.date_created_gmt <= %s";
+                AND o.date_created_gmt <= %s
+                AND " . self::get_global_status_sql_condition();
     }
 
 

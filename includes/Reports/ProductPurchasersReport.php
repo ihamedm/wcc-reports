@@ -56,7 +56,7 @@ class ProductPurchasersReport extends BaseReport {
                 WHERE oi.product_id = %d
                 AND o.date_created_gmt >= %s
                 AND o.date_created_gmt <= %s
-                AND o.status IN ('wc-completed', 'wc-processing', 'wc-on-hold')";
+                AND " . self::get_global_status_sql_condition();
     }
 
     /**

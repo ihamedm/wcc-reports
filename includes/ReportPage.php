@@ -32,6 +32,8 @@ class ReportPage {
         Reports\ReportRegistry::register(new Reports\LastWeekInactiveUsers());
         Reports\ReportRegistry::register(new Reports\LastMonthPurchasersWithoutCategory());
         Reports\ReportRegistry::register(new Reports\ProductPurchasersReport());
+        Reports\ReportRegistry::register(new Reports\CouponUsersReport());
+        Reports\ReportRegistry::register(new Reports\BillingCityCustomersReport());
     }
 
 
@@ -41,8 +43,8 @@ class ReportPage {
     public function add_reports_page() {
         add_submenu_page(
             'woocommerce',
-            __('Customer Reports', WCCREPORTS_TEXT_DOMAIN), // Page title
-            __('Customer Reports', WCCREPORTS_TEXT_DOMAIN), // Menu title
+            'گزارش‌های مشتریان', // Page title
+            'گزارش‌های مشتریان', // Menu title
             'manage_options', // Capability required
             'customer-reports', // Menu slug
             array($this, 'display_reports_page'), // Function to display the page
@@ -63,7 +65,76 @@ class ReportPage {
 
         ?>
         <div class="wrap">
-            <h1><?php _e('Customer Reports', WCCREPORTS_TEXT_DOMAIN);?></h1>
+            <h1>گزارش‌های مشتریان</h1>
+            
+            <!-- Global Order Status Filter -->
+            <div class="wcc-global-status-filter" style="background: #fff; padding: 20px; margin: 20px 0; border: 1px solid #ccd0d4; border-radius: 4px;">
+                <h3>فیلتر وضعیت سفارشات (عمومی)</h3>
+                <p>وضعیت‌های سفارشاتی که در تمام گزارش‌ها لحاظ شوند را انتخاب کنید:</p>
+                
+                <?php
+                // Handle form submission first
+                if (isset($_POST['wccreports_global_status_nonce']) && wp_verify_nonce($_POST['wccreports_global_status_nonce'], 'wccreports_global_status_update')) {
+                    $new_statuses = isset($_POST['global_order_statuses']) ? array_map('sanitize_text_field', $_POST['global_order_statuses']) : [];
+                    update_option('wccreports_global_order_statuses', $new_statuses);
+                    echo '<div class="notice notice-success"><p>فیلتر وضعیت سفارشات با موفقیت به‌روزرسانی شد!</p></div>';
+                }
+                
+                $available_statuses = Reports\BaseReport::get_available_order_statuses();
+                $selected_statuses = Reports\BaseReport::get_global_order_statuses();
+                ?>
+                
+                <form method="post" action="">
+                    <?php wp_nonce_field('wccreports_global_status_update', 'wccreports_global_status_nonce'); ?>
+                    
+                    <div style="margin: 15px 0;">
+                        <button type="button" id="select-all-statuses" class="button button-secondary" style="margin-right: 10px;">
+                            انتخاب همه
+                        </button>
+                        <button type="button" id="unselect-all-statuses" class="button button-secondary">
+                            لغو انتخاب همه
+                        </button>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin: 15px 0;">
+                        <?php foreach ($available_statuses as $status_key => $status_label): ?>
+                            <label style="display: flex; align-items: center; padding: 8px; background: #f9f9f9; border-radius: 3px;">
+                                <input type="checkbox" 
+                                       name="global_order_statuses[]" 
+                                       value="<?php echo esc_attr($status_key); ?>"
+                                       <?php checked(in_array($status_key, $selected_statuses)); ?>
+                                       class="status-checkbox"
+                                       style="margin-right: 8px;">
+                                <span><?php echo esc_html($status_label); ?></span>
+                            </label>
+                        <?php endforeach; ?>
+                    </div>
+                    
+                    <button type="submit" class="button button-primary">
+                        به‌روزرسانی فیلتر عمومی
+                    </button>
+                </form>
+            </div>
+            
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const selectAllBtn = document.getElementById('select-all-statuses');
+                const unselectAllBtn = document.getElementById('unselect-all-statuses');
+                const checkboxes = document.querySelectorAll('.status-checkbox');
+                
+                selectAllBtn.addEventListener('click', function() {
+                    checkboxes.forEach(checkbox => {
+                        checkbox.checked = true;
+                    });
+                });
+                
+                unselectAllBtn.addEventListener('click', function() {
+                    checkboxes.forEach(checkbox => {
+                        checkbox.checked = false;
+                    });
+                });
+            });
+            </script>
             
             <div class="wcc-reports-container">
                 <?php
@@ -112,31 +183,27 @@ class ReportPage {
                 <?php endif; ?>
                 
                 <div class="report-value" id="<?php echo esc_attr($report_id); ?>">
-                    <span class="placeholder"><?php _e('Click on load report to show results.', WCCREPORTS_TEXT_DOMAIN); ?></span>
+                    <span class="placeholder">برای مشاهده نتایج روی تولید گزارش کلیک کنید.</span>
                 </div>
                 
                 <div class="report-actions">
                     <button type="button" class="button button-primary generate-report-btn" 
                             data-report="<?php echo esc_attr($report_id); ?>" 
                             data-action="<?php echo esc_attr($ajax_action); ?>">
-                        <span class="button-text"><?php _e('Generate Report', WCCREPORTS_TEXT_DOMAIN); ?></span>
+                        <span class="button-text">تولید گزارش</span>
                         <span class="spinner" style="display: none;"></span>
-                    </button>
-
-                    <button type="button" class="button button-secondary refresh-cache-btn"
-                            data-report="<?php echo esc_attr($report_id); ?>">
-                        <?php _e('Update cache', WCCREPORTS_TEXT_DOMAIN); ?>
                     </button>
 
                     <button type="button" class="button button-secondary export-users-btn" 
                             data-report-id="<?php echo esc_attr($report_id); ?>"
-                            data-report-name="<?php echo esc_attr($report_title); ?>">
-                        <?php _e('XLS', WCCREPORTS_TEXT_DOMAIN); ?>
+                            data-report-name="<?php echo esc_attr($report_title); ?>"
+                            disabled style="opacity: 0.5; cursor: not-allowed;">
+                        اکسل
                     </button>
 
                     <a href="<?php echo admin_url('admin.php?page=customer-reports&view=details&type=' . esc_attr($report_id)); ?>"
-                       class="button button-secondary" target="_blank">
-                        <?php _e('List', WCCREPORTS_TEXT_DOMAIN); ?>
+                       class="button button-secondary" target="_blank" style="opacity: 0.5; pointer-events: none;">
+                        لیست
                     </a>
                 </div>
             </div>
@@ -152,7 +219,7 @@ class ReportPage {
     public function display_user_details_page($report_type) {
         $report = Reports\ReportRegistry::get($report_type);
         if (!$report) {
-            wp_die(__('Report not found', WCCREPORTS_TEXT_DOMAIN));
+            wp_die('گزارش یافت نشد');
         }
 
         $sort_by = sanitize_text_field($_GET['sort_by'] ?? 'display_name');
@@ -170,9 +237,9 @@ class ReportPage {
         <div class="wrap">
             <h1>
                 <a href="<?php echo admin_url('admin.php?page=customer-reports'); ?>" class="page-title-action">
-                    ← <?php _e('Return to reports', WCCREPORTS_TEXT_DOMAIN); ?>
+                    ← بازگشت به گزارش‌ها
                 </a>
-                <?php echo esc_html($report->get_title()); ?> - <?php _e('Users Details', WCCREPORTS_TEXT_DOMAIN); ?>
+                <?php echo esc_html($report->get_title()); ?> - جزئیات کاربران
             </h1>
             
             <div class="wcc-reports-user-details-container">
@@ -185,17 +252,17 @@ class ReportPage {
                                 </th>
                                 <th>
                                     <a href="<?php echo admin_url('admin.php?page=customer-reports&view=details&type=' . esc_attr($report_type) . '&sort_by=display_name&sort_order=' . $current_sort['display_name']); ?>">
-                                        <?php _e('Name', WCCREPORTS_TEXT_DOMAIN); ?>
+                                        نام
                                         <?php if ($sort_by === 'display_name'): ?>
                                             <span class="sort-indicator"><?php echo $sort_order === 'ASC' ? '↑' : '↓'; ?></span>
                                         <?php endif; ?>
                                     </a>
                                 </th>
-                                <th><?php _e('Email', WCCREPORTS_TEXT_DOMAIN); ?></th>
-                                <th><?php _e('Phone', WCCREPORTS_TEXT_DOMAIN); ?></th>
+                                <th>ایمیل</th>
+                                <th>تلفن</th>
                                 <th>
                                     <a href="<?php echo admin_url('admin.php?page=customer-reports&view=details&type=' . esc_attr($report_type) . '&sort_by=order_count&sort_order=' . $current_sort['order_count']); ?>">
-                                        <?php _e('Orders', WCCREPORTS_TEXT_DOMAIN); ?>
+                                        سفارشات
                                         <?php if ($sort_by === 'order_count'): ?>
                                             <span class="sort-indicator"><?php echo $sort_order === 'ASC' ? '↑' : '↓'; ?></span>
                                         <?php endif; ?>
@@ -203,7 +270,7 @@ class ReportPage {
                                 </th>
                                 <th>
                                     <a href="<?php echo admin_url('admin.php?page=customer-reports&view=details&type=' . esc_attr($report_type) . '&sort_by=user_registered&sort_order=' . $current_sort['user_registered']); ?>">
-                                        <?php _e('Register on', WCCREPORTS_TEXT_DOMAIN); ?>
+                                        تاریخ عضویت
                                         <?php if ($sort_by === 'user_registered'): ?>
                                             <span class="sort-indicator"><?php echo $sort_order === 'ASC' ? '↑' : '↓'; ?></span>
                                         <?php endif; ?>
@@ -211,7 +278,7 @@ class ReportPage {
                                 </th>
                                 <th>
                                     <a href="<?php echo admin_url('admin.php?page=customer-reports&view=details&type=' . esc_attr($report_type) . '&sort_by=last_order_date&sort_order=' . $current_sort['last_order_date']); ?>">
-                                        <?php _e('Last order', WCCREPORTS_TEXT_DOMAIN); ?>
+                                        آخرین سفارش
                                         <?php if ($sort_by === 'last_order_date'): ?>
                                             <span class="sort-indicator"><?php echo $sort_order === 'ASC' ? '↑' : '↓'; ?></span>
                                         <?php endif; ?>
@@ -229,7 +296,7 @@ class ReportPage {
                             } else {
                                 ?>
                                 <tr>
-                                    <td colspan="6"><?php _e('Not found any records for this report.', WCCREPORTS_TEXT_DOMAIN); ?></td>
+                                    <td colspan="6">هیچ رکوردی برای این گزارش یافت نشد.</td>
                                 </tr>
                                 <?php
                             }
@@ -249,8 +316,8 @@ class ReportPage {
      */
     private function display_user_row($user, $index): void {
         $order_count = $user->order_count ?? 0;
-        $registration_date = $user->user_registered ? wp_date('j F Y', strtotime($user->user_registered)) : __('N/A', WCCREPORTS_TEXT_DOMAIN);
-        $last_order_date = $user->last_order_date ? wp_date('j F Y', strtotime($user->last_order_date)) : __('N/A', WCCREPORTS_TEXT_DOMAIN);
+        $registration_date = $user->user_registered ? wp_date('j F Y', strtotime($user->user_registered)) : 'نامشخص';
+        $last_order_date = $user->last_order_date ? wp_date('j F Y', strtotime($user->last_order_date)) : 'نامشخص';
         
         ?>
         <tr>
@@ -259,7 +326,7 @@ class ReportPage {
                     admin_url('user-edit.php?user_id=' . $user->ID),
                     esc_html($user->display_name ?: $user->user_login)) ; ?></td>
             <td><?php echo esc_html($user->user_email); ?></td>
-            <td><?php echo esc_html($user->phone ?: __('N/A', WCCREPORTS_TEXT_DOMAIN)); ?></td>
+            <td><?php echo esc_html($user->phone ?: 'نامشخص'); ?></td>
             <td>
                 <?php if ($order_count > 0): ?>
                     <a href="<?php echo admin_url('edit.php?post_type=shop_order&_customer_user=' . $user->ID); ?>" 

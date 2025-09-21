@@ -69,6 +69,69 @@ abstract class BaseReport {
     }
 
     /**
+     * Get global order status filter
+     *
+     * @return array
+     */
+    public static function get_global_order_statuses(): array {
+        $default_statuses = ['wc-completed', 'wc-processing', 'wc-on-hold', 'wc-pws-ready-to-ship'];
+        $saved_statuses = get_option('wccreports_global_order_statuses', $default_statuses);
+        
+        // Ensure we always have an array
+        if (!is_array($saved_statuses)) {
+            return $default_statuses;
+        }
+        
+        return $saved_statuses;
+    }
+
+    /**
+     * Get all available WooCommerce order statuses
+     *
+     * @return array
+     */
+    public static function get_available_order_statuses(): array {
+        if (!function_exists('wc_get_order_statuses')) {
+            return [];
+        }
+        
+        $statuses = wc_get_order_statuses();
+        $formatted_statuses = [];
+        
+        foreach ($statuses as $key => $label) {
+            $formatted_statuses[$key] = $label;
+        }
+        
+        return $formatted_statuses;
+    }
+
+    /**
+     * Get global order status filter SQL condition
+     *
+     * @return string
+     */
+    public static function get_global_status_sql_condition(): string {
+        $statuses = self::get_global_order_statuses();
+        
+        if (empty($statuses)) {
+            return "1=1"; // No filter if no statuses
+        }
+        
+        global $wpdb;
+        $placeholders = implode(',', array_fill(0, count($statuses), '%s'));
+        return "o.status IN ({$placeholders})";
+    }
+
+    /**
+     * Get global order status filter parameters
+     *
+     * @return array
+     */
+    public static function get_global_status_parameters(): array {
+        return self::get_global_order_statuses();
+    }
+
+    /**
      * Check if this report should use WordPress query instead of SQL
      * Override this method in child classes to specify the query approach
      *
@@ -128,26 +191,41 @@ abstract class BaseReport {
 
 
     /**
-     * @param $refresh_cache
-     * @param string $user_input
+     * Get the user IDs for this report
+     *
+     * @param bool $refresh_cache Whether to refresh the cache
+     * @param string $user_input User input parameters
      * @return array
      */
     public function get_user_ids($refresh_cache = false, string $user_input = ''): array {
-        if ($refresh_cache) {
-            delete_transient($this->get_cache_key());
-        }
-
         // Create cache key that includes user parameters
-        $cache_key = $this->get_cache_key();
+        $cache_key = $this->get_cache_key() . '_' . md5($user_input);
+        
+        Logger::log("BaseReport - Cache key: " . $cache_key);
+        Logger::log("BaseReport - User input: " . $user_input);
+        
+        if ($refresh_cache) {
+            delete_transient($cache_key);
+            Logger::log("BaseReport - Cache cleared for key: " . $cache_key);
+        }
 
         $cached_result = get_transient($cache_key);
 
         if ($cached_result !== false) {
+            Logger::log("BaseReport - Using cached result for key: " . $cache_key . " (count: " . count($cached_result) . ")");
             return $cached_result;
         }
 
+        Logger::log("BaseReport - No cache found, executing query for key: " . $cache_key);
         $result = $this->execute_query($user_input);
         set_transient($cache_key, $result, $this->get_cache_duration());
+        
+        // Also cache the user input for this report
+        $params_cache_key = $this->get_cache_key() . '_params';
+        set_transient($params_cache_key, $user_input, $this->get_cache_duration());
+        
+        Logger::log("BaseReport - Cached result for key: " . $cache_key . " (count: " . count($result) . ")");
+        Logger::log("BaseReport - Cached params for key: " . $params_cache_key . " (params: " . $user_input . ")");
 
         return $result;
     }
@@ -162,6 +240,18 @@ abstract class BaseReport {
     public function get_count($refresh_cache = false, string $user_input = ''): int {
         $results = $this->get_user_ids($refresh_cache, $user_input);
         return $results ? count($results) : 0;
+    }
+
+    /**
+     * Get cached user parameters for this report
+     *
+     * @return string
+     */
+    public function get_cached_user_params(): string {
+        $params_cache_key = $this->get_cache_key() . '_params';
+        $cached_params = get_transient($params_cache_key);
+        Logger::log("BaseReport - Getting cached params for key: " . $params_cache_key . " (params: " . $cached_params . ")");
+        return $cached_params ?: '';
     }
 
     /**
@@ -187,11 +277,26 @@ abstract class BaseReport {
         $sql = $this->get_sql_query();
         $parameters = $this->get_parameters($user_input);
         
-        if (!empty($parameters)) {
-            $sql = $wpdb->prepare($sql, ...$parameters);
+        // Add global status filter parameters
+        $global_status_params = self::get_global_status_parameters();
+        $all_parameters = array_merge($parameters, $global_status_params);
+        
+        Logger::log("BaseReport - Raw SQL: " . $sql);
+        Logger::log("BaseReport - Parameters: " . print_r($parameters, true));
+        Logger::log("BaseReport - Global status parameters: " . print_r($global_status_params, true));
+        Logger::log("BaseReport - All parameters: " . print_r($all_parameters, true));
+        
+        if (!empty($all_parameters)) {
+            $sql = $wpdb->prepare($sql, ...$all_parameters);
         }
+        
+        Logger::log("BaseReport - Prepared SQL: " . $sql);
+        
+        $results = $wpdb->get_col($sql);
+        Logger::log("BaseReport - Query results count: " . count($results));
+        Logger::log("BaseReport - Query results: " . print_r($results, true));
 
-        return $wpdb->get_col($sql);
+        return $results;
     }
 
     /**
@@ -212,7 +317,7 @@ abstract class BaseReport {
      * @param string $sort_order
      * @return array
      */
-    public function get_users_details($sort_by = 'display_name', $sort_order = 'ASC'): array {
+    public function get_users_details($sort_by = 'display_name', $sort_order = 'ASC', string $user_input = ''): array {
         global $wpdb;
 
         $order_table_name = $wpdb->prefix . 'wc_orders';
@@ -228,7 +333,13 @@ abstract class BaseReport {
         }
 
         // Get user IDs for this report using the specific report logic
-        $user_ids = $this->get_user_ids();
+        // If no user_input provided, try to get from cache
+        if (empty($user_input)) {
+            $user_input = $this->get_cached_user_params();
+        }
+        Logger::log("BaseReport - get_users_details using user_input: " . $user_input);
+        $user_ids = $this->get_user_ids(false, $user_input);
+        Logger::log("BaseReport - get_users_details found user_ids: " . count($user_ids));
         
         if (empty($user_ids)) {
             return array();
@@ -280,11 +391,17 @@ abstract class BaseReport {
      *
      * @return string|false File URL on success, false on failure
      */
-    public function export_users(): string|false {
+    public function export_users(string $user_input = ''): string|false {
         global $wpdb;
 
         // Get user IDs for this report using the specific report logic
-        $user_ids = $this->get_user_ids();
+        // If no user_input provided, try to get from cache
+        if (empty($user_input)) {
+            $user_input = $this->get_cached_user_params();
+        }
+        Logger::log("BaseReport - export_users using user_input: " . $user_input);
+        $user_ids = $this->get_user_ids(false, $user_input);
+        Logger::log("BaseReport - export_users found user_ids: " . count($user_ids));
         
         if (empty($user_ids)) {
             return false;
@@ -308,16 +425,17 @@ abstract class BaseReport {
         }
 
         // Generate XLS file
-        return $this->generate_xls_file($users);
+        return $this->generate_xls_file($users, $user_input);
     }
 
     /**
      * Generate XLS file from user data
      *
      * @param array $users
+     * @param string $user_input
      * @return string|false File URL on success, false on failure
      */
-    protected function generate_xls_file($users): string|false {
+    protected function generate_xls_file($users, string $user_input = ''): string|false {
         // Create uploads directory if it doesn't exist
         $upload_dir = wp_upload_dir();
         $export_dir = $upload_dir['basedir'] . '/wccreports-exports/';
@@ -332,10 +450,23 @@ abstract class BaseReport {
             file_put_contents($index_file, '<?php // Silence is golden');
         }
 
-        // Generate filename with unique identifier
+        // Generate filename with parameters and unique identifier
         $timestamp = current_time('Y-m-d_H-i-s');
         $unique_id = wp_generate_password(8, false);
-        $filename = sanitize_file_name($this->get_id() . '_' . $timestamp . '_' . $unique_id . '.xls');
+        
+        // Create parameter string for filename
+        $param_string = '';
+        if (!empty($user_input)) {
+            // Parse parameters and create a clean string
+            $params = $this->parse_user_parameters($user_input);
+            $param_parts = [];
+            foreach ($params as $key => $value) {
+                $param_parts[] = $key . '=' . $value;
+            }
+            $param_string = '_' . sanitize_file_name(implode('_', $param_parts));
+        }
+        
+        $filename = sanitize_file_name($this->get_id() . $param_string . '_' . $timestamp . '_' . $unique_id . '.xls');
         $filepath = $export_dir . $filename;
 
         // Create XLS content

@@ -41,6 +41,17 @@ jQuery(document).ready(function($) {
                 if (response.success) {
                     $reportValue.html('<span class="report-number">' + response.data.count.toLocaleString() + '</span>');
                     showToast('گزارش با موفقیت تولید شد!', 'success');
+                    
+                    // Enable List and Excel buttons
+                    const $reportActions = $button.closest('.report-actions');
+                    $reportActions.find('.export-users-btn').prop('disabled', false).css({
+                        'opacity': '1',
+                        'cursor': 'pointer'
+                    });
+                    $reportActions.find('a[href*="view=details"]').css({
+                        'opacity': '1',
+                        'pointer-events': 'auto'
+                    });
                 } else {
                     $reportValue.html('<span class="error-text">' + wccreports_ajax.error_text + '</span>');
                     showToast('خطا در تولید گزارش: ' + (response.data.message || 'خطای نامشخص'), 'error');
@@ -59,58 +70,6 @@ jQuery(document).ready(function($) {
         });
     });
 
-    // Handle Refresh Cache button clicks
-    $(document).on('click', '.refresh-cache-btn', function(e) {
-        e.preventDefault();
-        
-        const $button = $(this);
-        const reportId = $button.data('report');
-        const $reportValue = $('#' + reportId);
-        
-        // Get parameter input value
-        const $parameterInput = $('#params-' + reportId);
-        const userParameters = $parameterInput.length ? $parameterInput.val().trim() : '';
-        
-        // Don't allow multiple clicks
-        if ($button.hasClass('loading')) {
-            return;
-        }
-        
-        // Show loading state
-        $button.addClass('loading');
-        $button.text(wccreports_ajax.loading_text);
-        
-        // Get the action from the generate button in the same card
-        const action = $button.closest('.report-actions').find('.generate-report-btn').data('action');
-        
-        $.ajax({
-            url: wccreports_ajax.ajax_url,
-            type: 'POST',
-            data: {
-                action: action,
-                report_id: reportId,
-                user_parameters: userParameters,
-                nonce: wccreports_ajax.nonce,
-                refresh_cache: true
-            },
-            success: function(response) {
-                if (response.success) {
-                    $reportValue.html('<span class="report-number">' + response.data.count.toLocaleString() + '</span>');
-                    showToast('کش با موفقیت بروزرسانی شد!', 'success');
-                } else {
-                    showToast('خطا در بروزرسانی کش: ' + (response.data.message || 'خطای نامشخص'), 'error');
-                }
-            },
-            error: function(xhr, status, error) {
-                showToast('خطای AJAX: ' + error, 'error');
-            },
-            complete: function() {
-                // Reset button state
-                $button.removeClass('loading');
-                $button.text('بروزرسانی کش');
-            }
-        });
-    });
 
     // Toast notification function using Toastify
     function showToast(message, type = 'info') {
@@ -134,6 +93,10 @@ jQuery(document).ready(function($) {
         const reportId = $button.data('report-id');
         const reportName = $button.data('report-name');
         
+        // Get user parameters from the input field
+        const $reportCard = $button.closest('.report-card');
+        const userParameters = $reportCard.find('.report-parameters input').val() || '';
+        
         // Don't allow multiple clicks
         if ($button.hasClass('loading')) {
             return;
@@ -150,14 +113,15 @@ jQuery(document).ready(function($) {
             data: {
                 action: 'wccreports_export_' + reportId,
                 report_id: reportId,
+                user_parameters: userParameters,
                 nonce: wccreports_ajax.nonce
             },
             success: function(response) {
                 if (response.success) {
-                    // Create download link
+                    // Create download link with actual filename from server
                     const link = document.createElement('a');
                     link.href = response.data.file_url;
-                    link.download = reportName + '_' + new Date().toISOString().slice(0, 10) + '.xls';
+                    link.download = response.data.filename || (reportName + '_' + new Date().toISOString().slice(0, 10) + '.xls');
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);

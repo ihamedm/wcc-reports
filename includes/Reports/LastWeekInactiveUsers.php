@@ -55,6 +55,7 @@ class LastWeekInactiveUsers extends BaseReport {
                 LEFT JOIN {$order_table_name} o ON u.ID = o.customer_id 
                     AND o.date_created_gmt >= %s 
                     AND o.date_created_gmt <= %s
+                    AND " . self::get_global_status_sql_condition() . "
                 WHERE u.user_registered >= %s 
                 AND u.user_registered <= %s
                 AND o.customer_id IS NULL";

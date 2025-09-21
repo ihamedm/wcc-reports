@@ -53,7 +53,8 @@ class LastMonthCustomers extends BaseReport {
         return "SELECT DISTINCT o.customer_id
                 FROM {$order_table_name} o
                 WHERE o.date_created_gmt >= %s
-                AND o.date_created_gmt <= %s";
+                AND o.date_created_gmt <= %s
+                AND " . self::get_global_status_sql_condition();
     }
 
 

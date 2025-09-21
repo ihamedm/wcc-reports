@@ -64,14 +64,14 @@ class ReportManager {
 
         $report = ReportRegistry::get($report_id);
         if (!$report) {
-            wp_send_json_error(array('message' => __('Report Not found', WCCREPORTS_TEXT_DOMAIN)));
+            wp_send_json_error(array('message' => 'گزارش یافت نشد'));
         }
 
         $count = $report->get_count($refresh_cache, $user_parameters);
         
         wp_send_json_success(array(
             'count' => $count,
-            'message' => __('Reports Generated successfully', WCCREPORTS_TEXT_DOMAIN),
+            'message' => 'گزارش با موفقیت تولید شد',
         ));
     }
 
@@ -90,22 +90,27 @@ class ReportManager {
         }
 
         $report_id = sanitize_text_field($_POST['report_id']);
+        $user_parameters = sanitize_text_field($_POST['user_parameters'] ?? '');
         
         $report = ReportRegistry::get($report_id);
         if (!$report) {
-            wp_send_json_error(array('message' => __('Report Not found', WCCREPORTS_TEXT_DOMAIN)));
+            wp_send_json_error(array('message' => 'گزارش یافت نشد'));
         }
 
-        $filename = $report->export_users();
+        $filename = $report->export_users($user_parameters);
         
         if ($filename) {
+            // Extract filename from URL
+            $actual_filename = basename($filename);
+            
             wp_send_json_success(array(
                 'file_url' => $filename,
-                'message' => __('Export successfully created.', WCCREPORTS_TEXT_DOMAIN)
+                'filename' => $actual_filename,
+                'message' => 'خروجی با موفقیت ایجاد شد'
             ));
         } else {
             wp_send_json_error(array(
-                'message' => __('Data not found', WCCREPORTS_TEXT_DOMAIN)
+                'message' => 'داده‌ای یافت نشد'
             ));
         }
     }
@@ -138,7 +143,7 @@ class ReportManager {
         wp_send_json_success(array(
             'users' => $users,
             'count' => count($users),
-            'message' => __('Details received successfully', WCCREPORTS_TEXT_DOMAIN)
+            'message' => 'جزئیات با موفقیت دریافت شد'
         ));
     }
 
