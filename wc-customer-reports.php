@@ -1,9 +1,9 @@
 <?php
 /*
-Plugin Name: Woocommerce Customer Reports Agent
+Plugin Name: گزارشات مشتریان ووکامرس
 Plugin URI: https://github.com/ihamedm/wcc-reports
-Description: Advanced customer analytics and reporting plugin for WooCommerce. Track customer behavior, generate detailed reports, and gain insights into your customer base with performance-optimized analytics.
-Version: 0.2.2
+Description: گزارش گیری پیشرفته از مشتریان ووکامرس با قابلیت فیلتر و خروجی گرفتن در فرمت های مختلف
+Version: 1.1
 Author: Hamed Movasaqpoor
 Author URI: https://github.com/ihamedm
 License: GPL v2 or later

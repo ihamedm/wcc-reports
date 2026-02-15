@@ -6,6 +6,8 @@
  */
 namespace WCCREPORTS\Reports;
 
+use WCCREPORTS\Core\Logger;
+
 if ( ! defined( 'ABSPATH' ) ) {
     exit; // Exit if accessed directly.
 }
@@ -48,15 +50,14 @@ class LastMonthCustomers extends BaseReport {
         global $wpdb;
 
         $order_table_name = $wpdb->prefix . 'wc_orders';
-        $user_table_name = $wpdb->users;
 
         return "SELECT DISTINCT o.customer_id
                 FROM {$order_table_name} o
                 WHERE o.date_created_gmt >= %s
                 AND o.date_created_gmt <= %s
-                AND " . self::get_global_status_sql_condition();
+                AND " . self::get_global_status_sql_condition() .
+                " GROUP BY o.customer_id HAVING COUNT(*) >= %d";
     }
-
 
     /**
      * Get the parameters for the SQL query
@@ -76,12 +77,19 @@ class LastMonthCustomers extends BaseReport {
         return [$start_date, $end_date];
     }
 
+    protected function get_end_parameters(string $user_input = ''): array {
+        $user_params = $this->parse_user_parameters($user_input);
+        $min = isset($user_params['min']) ? sanitize_text_field($user_params['min']) : 1;
+
+        return [$min];
+    }
+
     public function get_parameter_placeholder(): string {
-        return 'days=30';
+        return 'days=30, min=1';
     }
 
     public function get_parameter_label(): string {
-        return 'پارامترها (تعداد روزها)';
+        return 'پارامترها (تعداد روزها، حداقل تعداد سفارش)';
     }
 
 } 

@@ -50,6 +50,11 @@ abstract class BaseReport {
      */
     abstract protected function get_parameters(string $user_input = ''): array;
 
+
+    protected function get_end_parameters(string $user_input = ''): array {
+        return [];
+    }
+
     /**
      * Get the cache key for this report
      *
@@ -112,13 +117,14 @@ abstract class BaseReport {
      */
     public static function get_global_status_sql_condition(): string {
         $statuses = self::get_global_order_statuses();
-        
+
         if (empty($statuses)) {
             return "1=1"; // No filter if no statuses
         }
         
         global $wpdb;
         $placeholders = implode(',', array_fill(0, count($statuses), '%s'));
+
         return "o.status IN ({$placeholders})";
     }
 
@@ -183,8 +189,6 @@ abstract class BaseReport {
                 $params[trim($key)] = trim($value);
             }
         }
-
-        Logger::log(print_r($params, true));
         
         return $params;
     }
@@ -197,24 +201,27 @@ abstract class BaseReport {
      * @param string $user_input User input parameters
      * @return array
      */
-    public function get_user_ids($refresh_cache = false, string $user_input = ''): array {
+    public function get_user_ids($refresh_cache = true, string $user_input = ''): array {
         // Create cache key that includes user parameters
         $cache_key = $this->get_cache_key() . '_' . md5($user_input);
         
         Logger::log("BaseReport - Cache key: " . $cache_key);
         Logger::log("BaseReport - User input: " . $user_input);
-        
-        if ($refresh_cache) {
-            delete_transient($cache_key);
-            Logger::log("BaseReport - Cache cleared for key: " . $cache_key);
-        }
 
-        $cached_result = get_transient($cache_key);
+        delete_transient($cache_key);
+        Logger::log("BaseReport - Cache cleared for key: " . $cache_key);
 
-        if ($cached_result !== false) {
-            Logger::log("BaseReport - Using cached result for key: " . $cache_key . " (count: " . count($cached_result) . ")");
-            return $cached_result;
-        }
+//        if ($refresh_cache) {
+//            delete_transient($cache_key);
+//            Logger::log("BaseReport - Cache cleared for key: " . $cache_key);
+//        }
+
+//        $cached_result = get_transient($cache_key);
+//
+//        if ($cached_result !== false) {
+//            Logger::log("BaseReport - Using cached result for key: " . $cache_key . " (count: " . count($cached_result) . ")");
+//            return $cached_result;
+//        }
 
         Logger::log("BaseReport - No cache found, executing query for key: " . $cache_key);
         $result = $this->execute_query($user_input);
@@ -237,7 +244,7 @@ abstract class BaseReport {
      * @param string $user_input User input parameters
      * @return int
      */
-    public function get_count($refresh_cache = false, string $user_input = ''): int {
+    public function get_count($refresh_cache = true, string $user_input = ''): int {
         $results = $this->get_user_ids($refresh_cache, $user_input);
         return $results ? count($results) : 0;
     }
@@ -276,10 +283,13 @@ abstract class BaseReport {
 
         $sql = $this->get_sql_query();
         $parameters = $this->get_parameters($user_input);
+        $end_parameters = $this->get_end_parameters($user_input);
+
+        Logger::log("BaseReport - Executing SQL: " . print_r($parameters, true));
         
         // Add global status filter parameters
         $global_status_params = self::get_global_status_parameters();
-        $all_parameters = array_merge($parameters, $global_status_params);
+        $all_parameters = array_merge($parameters, $global_status_params, $end_parameters);
         
         Logger::log("BaseReport - Raw SQL: " . $sql);
         Logger::log("BaseReport - Parameters: " . print_r($parameters, true));
@@ -294,7 +304,7 @@ abstract class BaseReport {
         
         $results = $wpdb->get_col($sql);
         Logger::log("BaseReport - Query results count: " . count($results));
-        Logger::log("BaseReport - Query results: " . print_r($results, true));
+        //Logger::log("BaseReport - Query results: " . print_r($results, true));
 
         return $results;
     }
@@ -338,7 +348,7 @@ abstract class BaseReport {
             $user_input = $this->get_cached_user_params();
         }
         Logger::log("BaseReport - get_users_details using user_input: " . $user_input);
-        $user_ids = $this->get_user_ids(false, $user_input);
+        $user_ids = $this->get_user_ids(true, $user_input);
         Logger::log("BaseReport - get_users_details found user_ids: " . count($user_ids));
         
         if (empty($user_ids)) {
@@ -400,7 +410,7 @@ abstract class BaseReport {
             $user_input = $this->get_cached_user_params();
         }
         Logger::log("BaseReport - export_users using user_input: " . $user_input);
-        $user_ids = $this->get_user_ids(false, $user_input);
+        $user_ids = $this->get_user_ids(true, $user_input);
         Logger::log("BaseReport - export_users found user_ids: " . count($user_ids));
         
         if (empty($user_ids)) {
@@ -496,7 +506,7 @@ abstract class BaseReport {
         $content .= "Generated: " . current_time('Y-m-d H:i:s') . "\n\n";
         
         // Headers
-        $content .= "User ID\tName\tPhone Number\n";
+        $content .= "User ID,Name,Phone Number\n";
         
         // Data rows
         foreach ($users as $user) {
@@ -504,7 +514,7 @@ abstract class BaseReport {
             $name = $user->display_name ?: 'N/A';
             $phone = $user->phone ?: 'N/A';
             
-            $content .= "{$user_id}\t{$name}\t{$phone}\n";
+            $content .= "{$user_id},{$name},{$phone}\n";
         }
         
         return $content;
